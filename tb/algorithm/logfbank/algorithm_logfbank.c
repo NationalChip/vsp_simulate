@@ -49,15 +49,26 @@ int _FFT(int *sample, float *fft_out, int frame_size, int fft_size)
         int image = fft_cpl_out[2*i + 1];
         int cpl_model_qn = QN - shift_num + QN -shift_num;
         long long cpl_model = (long long)real * (long long)real + (long long)image * (long long)image;//Q((15-shift_num)*2)
-        int bit_length = BitLength(cpl_model);
-        int qn = (bit_length - (cpl_model_qn - QN + 9))  > 32 ? (bit_length - (cpl_model_qn - QN + 9)) - 32 : 0;
+        int qn = 0;
+        // int bit_length = 0;
+        // bit_length = BitLength(cpl_model);
+        // qn = (bit_length - (cpl_model_qn - QN + 9))  > 32 ? (bit_length - (cpl_model_qn - QN + 9)) - 32 : 0;
+        // optimization cycles
+        if ( cpl_model < 281474976710656) { // 1 << 48
+            qn = 0;
+        }
+        else if (cpl_model < 72057594037927936) { // 1 << 56
+            qn = 8;
+        }
+        else {
+            qn = QN;
+        }
         fft_out[i] = (float)(cpl_model >> (9 + qn + cpl_model_qn - QN)) / (1 << (QN - qn));
 #ifdef OPEN_DEBUG_PRINTF
         if(i%10 == 0)printf("\n");
         printf("%5.5f ", fft_out[i]);
 #endif
     }
-
     return 0;
 }
 
@@ -143,7 +154,7 @@ int _MelFilter(float *fft_data, float *fbank_out, int sample_rate, int fft_size,
     return 0;
 }
 
-int _LogFbank(float *fbank, float *logfbank_out, int fbank_size)
+int _Log(float *fbank, float *logfbank_out, int fbank_size)
 {
 #ifdef OPEN_PRINTF
     printf("\nlogfbank:");
@@ -216,7 +227,7 @@ int LogFbank(int *sample, float *logfbank_out, int sample_rate, int frame_size, 
     memset(fbank_data, 0 , sizeof(float)*fbank_size);
     _FFT(sample, fft_data, frame_size, fft_size);
     _MelFilter(fft_data, fbank_data, sample_rate, fft_size, fbank_size);
-    _LogFbank(fbank_data, logfbank_out, fbank_size);
+    _Log(fbank_data, logfbank_out, fbank_size);
    
     return 0;
 }

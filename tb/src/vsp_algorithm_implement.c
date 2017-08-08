@@ -63,11 +63,23 @@ int _VspPrintfFFT(int *real_buffer, int *image_buffer, int shift_num)
     for (int j = 0; j < sizeof(fft_buffer) / sizeof(int); j++) {
         int cpl_model_qn = QN - shift_num + QN -shift_num;
         long long cpl_model = (long long)real_buffer[j] * (long long)real_buffer[j] + (long long)image_buffer[j] * (long long)image_buffer[j];//Q((15-shift_num)*2)
-        int bit_length = BitLength(cpl_model);
-        int qn = (bit_length - (cpl_model_qn - 15 +9))  > 32 ? (bit_length - (cpl_model_qn - 15 +9)) - 32 : 0;
-        fft_buffer[j] = cpl_model >> (9 + qn + cpl_model_qn - 15);
+        int qn = 0;
+        // int bit_length = 0;
+        // bit_length = BitLength(cpl_model);
+        // qn = (bit_length - (cpl_model_qn - QN + 9))  > 32 ? (bit_length - (cpl_model_qn - QN + 9)) - 32 : 0;
+        // optimization cycles
+        if ( cpl_model < 281474976710656) { // 1 << 48
+            qn = 0;
+        }
+        else if (cpl_model < 72057594037927936) { // 1 << 56
+            qn = 8;
+        }
+        else {
+            qn = QN;
+        }
+        fft_buffer[j] = cpl_model >> (9 + qn + cpl_model_qn - QN);
         if(j%10 == 0)printf("\n");
-        printf("%5.5f ", UnsignQnToFloat(fft_buffer[j], 15 - qn));
+        printf("%5.5f ", UnsignQnToFloat(fft_buffer[j], QN - qn));
     }
 
     return 0;
@@ -93,6 +105,7 @@ int VspDoFFT(VSP_CONTEXT *context)
 #ifdef OPEN_DEBUG_PRINTF
         _VspPrintfFFT(real_buffer, image_buffer, shift_num);
 #endif
+        memcpy(preemph_buffer, &preemph_buffer[SHIFT_SIZE], sizeof(int) * (FRAME_SIZE - SHIFT_SIZE));
     }
     else {
         for (int i=0; i<ctx_header->frame_num_per_context; i++) {
@@ -105,7 +118,6 @@ int VspDoFFT(VSP_CONTEXT *context)
         }
     }
 
-    memcpy(preemph_buffer, &preemph_buffer[SHIFT_SIZE], sizeof(int) * (FRAME_SIZE - SHIFT_SIZE));
     return 0;
 }
 
@@ -137,7 +149,7 @@ int VspDoLogfbank(VSP_CONTEXT *context)
         memcpy(tmp_buffer, &log_fbank_buffer[frame_num_per_context * ctx_header->logfbanks_dim]
                 , fbank_shift_frame_num * ctx_header->logfbanks_dim * sizeof(float));
         memcpy(log_fbank_buffer, tmp_buffer
-                ,  fbank_shift_frame_num * ctx_header->logfbanks_dim * sizeof(float));
+                , fbank_shift_frame_num * ctx_header->logfbanks_dim * sizeof(float));
         memset(&log_fbank_buffer[fbank_shift_frame_num* ctx_header->logfbanks_dim], 0
                 , frame_num_per_context * ctx_header->logfbanks_dim * sizeof(float));
     }
@@ -157,9 +169,7 @@ int VspDoLogfbank(VSP_CONTEXT *context)
 #endif
         memcpy(preemph_buffer, &preemph_buffer[SHIFT_SIZE], sizeof(int) * (FRAME_SIZE - SHIFT_SIZE));
     }
-
     memcpy(context->logfbanks, log_fbank_buffer, ctx_header->logfbanks_group_num * ctx_header->logfbanks_dim * sizeof(float));
-    memcpy(preemph_buffer, &preemph_buffer[SHIFT_SIZE], sizeof(int) * (FRAME_SIZE - SHIFT_SIZE));
 
 #ifdef OPEN_PRINTF
     for(int i = 0; i < ctx_header->logfbanks_group_num * ctx_header->logfbanks_dim; i++) {
