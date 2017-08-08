@@ -1,0 +1,87 @@
+//  Memory map file to generate linker scripts for programs run on the ISS.
+
+// Customer ID=12344; Build=0x66061; Copyright (c) 2004-2015 Cadence Design Systems, Inc.
+//
+// Permission is hereby granted, free of charge, to any person obtaining
+// a copy of this software and associated documentation files (the
+// "Software"), to deal in the Software without restriction, including
+// without limitation the rights to use, copy, modify, merge, publish,
+// distribute, sublicense, and/or sell copies of the Software, and to
+// permit persons to whom the Software is furnished to do so, subject to
+// the following conditions:
+//
+// The above copyright notice and this permission notice shall be included
+// in all copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+// EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+// MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+// IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+// CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+// TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+// SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+
+// A memory map is a sequence of memory descriptions and
+// optional parameter assignments.
+//
+// Each memory description has the following format:
+//   BEGIN <name>
+//     <addr> [,<paddr>] : <mem-type> : <mem-name> : <size> [,<psize>]
+//                       : [writable] [,executable] [,device] ;
+//     <segment>*
+//   END <name>
+//
+// where each <segment> description has the following format:
+//     <seg-name> : F|C : <start-addr> - <end-addr> [ : STACK ] [ : HEAP ]
+//                : <section-name>* ;
+//
+// Each parameter assignment is a keyword/value pair in the following format:
+//   <keyword> = <value>                (no spaces in <value>)
+// or
+//   <keyword> = "<value>"              (spaces allowed in <value>)
+//
+// The following primitives are also defined:
+//   PLACE SECTIONS( <section-name>* ) { WITH_SECTION(<section-name>)
+//                                       | IN_SEGMENT(<seg-name>) }
+//
+//   NOLOAD <section-name1> [ <section-name2> ... ]
+//
+// Please refer to the Xtensa LSP Reference Manual for more details.
+//
+BEGIN sram
+0x200: sysram : sram : 0x800000 : executable, writable ;
+ sram0 : C : 0x200 - 0x8001ff :  STACK :  HEAP : .sram.rodata .rodata .sram.literal .literal .sram.text .text .sram.data .data .sram.bss .bss;
+END sram
+
+BEGIN iram0
+0x900000: instRam : iram0 : 0x8000 : executable, writable ;
+ iram0_0 : F : 0x900000 - 0x9002ff : .ResetVector.text;
+ iram0_1 : C : 0x900300 - 0x9003ff : ;
+ iram0_2 : F : 0x900400 - 0x900577 : .WindowVectors.text;
+ iram0_3 : C : 0x900578 - 0x90057f : .Level2InterruptVector.literal;
+ iram0_4 : F : 0x900580 - 0x9005b7 : .Level2InterruptVector.text;
+ iram0_5 : C : 0x9005b8 - 0x9005bf : .Level3InterruptVector.literal;
+ iram0_6 : F : 0x9005c0 - 0x9005f7 : .Level3InterruptVector.text;
+ iram0_7 : C : 0x9005f8 - 0x9005ff : .Level4InterruptVector.literal;
+ iram0_8 : F : 0x900600 - 0x900637 : .Level4InterruptVector.text;
+ iram0_9 : C : 0x900638 - 0x90063f : .Level5InterruptVector.literal;
+ iram0_10 : F : 0x900640 - 0x900677 : .Level5InterruptVector.text;
+ iram0_11 : C : 0x900678 - 0x90067f : .DebugExceptionVector.literal;
+ iram0_12 : F : 0x900680 - 0x9006b7 : .DebugExceptionVector.text;
+ iram0_13 : C : 0x9006b8 - 0x9006bf : .NMIExceptionVector.literal;
+ iram0_14 : F : 0x9006c0 - 0x9006f7 : .NMIExceptionVector.text;
+ iram0_15 : C : 0x9006f8 - 0x9006ff : .KernelExceptionVector.literal;
+ iram0_16 : F : 0x900700 - 0x900737 : .KernelExceptionVector.text;
+ iram0_17 : C : 0x900738 - 0x90073f : .UserExceptionVector.literal;
+ iram0_18 : F : 0x900740 - 0x900777 : .UserExceptionVector.text;
+ iram0_19 : C : 0x900778 - 0x9007bf : .DoubleExceptionVector.literal;
+ iram0_20 : F : 0x9007c0 - 0x9007ff : .DoubleExceptionVector.text;
+ iram0_21 : C : 0x900800 - 0x907fff : .iram0.literal .iram0.text;
+END iram0
+
+BEGIN dram0
+0x910000: dataRam : dram0 : 0x10000 : writable ;
+ dram0_0 : C : 0x910000 - 0x91ffff : .dram0.rodata .dram0.literal .dram0.data .dram0.bss;
+END dram0
+

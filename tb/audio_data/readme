@@ -1,0 +1,5 @@
+1. 工程默认的 wave 文件都是同一个 wave 拷贝来的，调试时需要更换成自己的 wave 文件
+2. 此文件放各路的麦克风的 wave 文件和做 AEC 用的 ref 文件，mic文件名请遵从：mic[0~9].wav的格式，比如：mic0.wav, mic1.wav。ref文件名请遵从：ref[0~9].wav的格式，比如：ref0.wav, ref1.wav
+
+具体详情请阅读: ./tb/src/vsp_main.c
+
