@@ -77,7 +77,7 @@ int PreEmph(short *sample, int *preemph_sample, int sample_size)
 
     for (int i=0; i<sample_size; i++) {
         preemph_sample[i] = FloatToSignQn((float)sample[i] - (float)last_sample * 0.97, QN); // 0.96875 ≈ 0.97
-        //frame_preemph_buffer[i] = (sample[i]<<15) - (last_sample<<15) + (last_sample<<10); // 0.96875 ≈ 0.97
+        //preemph_sample[i] = (sample[i]<<15) - (last_sample<<15) + (last_sample<<10); // 0.96875 ≈ 0.97
         last_sample = sample[i];
     }
 

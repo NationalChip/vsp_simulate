@@ -13,7 +13,10 @@
 
 #define OPEN_PRINTF
 
-#define SAMPLE_RATE     16000
+#define SAMPLE_RATE             16000
+#define FRAME_LENGTH			10
+#define FRAME_NUM_PER_CONTEXT   3
+#define CONTEXT_NUM_PER_CHANNEL 5
 
 VSP_CONTEXT vsp_context;
 
@@ -158,14 +161,14 @@ int VspContextInit(void)
     ctx_header->version = 20170731;
     ctx_header->mic_num = 6;
     ctx_header->ref_num = 2;
-    ctx_header->frame_num_per_context = 3;
-    ctx_header->frame_num_per_channel = 3;
-    ctx_header->frame_length = 10;
+    ctx_header->frame_num_per_context = FRAME_NUM_PER_CONTEXT;
+    ctx_header->frame_num_per_channel = CONTEXT_NUM_PER_CHANNEL * FRAME_NUM_PER_CONTEXT;
+    ctx_header->frame_length = FRAME_LENGTH;
     ctx_header->sample_rate = SAMPLE_RATE;
     ctx_header->logfbanks_dim = 40;
     ctx_header->logfbanks_group_num = 8;
     ctx_header->far_field_pattern_num = 360;
-    int frame_size = ctx_header->frame_num_per_context * ctx_header->frame_length * SAMPLE_RATE / 1000;
+    int frame_size = ctx_header->frame_num_per_channel * ctx_header->frame_length * SAMPLE_RATE / 1000;
     ctx_header->out_buffer_size = frame_size * sizeof(short);
     ctx_header->mic_buffer_size = ctx_header->mic_num * frame_size * sizeof(short);
     ctx_header->mic_buffer = (short *)malloc(ctx_header->mic_buffer_size);
@@ -176,7 +179,7 @@ int VspContextInit(void)
     vsp_context.mic_mask = 0xff;
     vsp_context.ref_mask = 0xff;
     vsp_context.frame_index = -3;
-    vsp_context.ctx_index = 0;
+    vsp_context.ctx_index = -1;
     vsp_context.vad = 0;
     vsp_context.kws = 0;
     vsp_context.gain_current = 0;
@@ -194,16 +197,20 @@ int VspContextInit(void)
 VSP_CONTEXT* VspGetContext(WAVE_DATA mic_data[], int mic_num, WAVE_DATA ref_data[], int ref_num)
 {
     VSP_CONTEXT_HEADER *ctx_header = vsp_context.ctx_header;
+    vsp_context.ctx_index++;
+    vsp_context.frame_index += ctx_header->frame_num_per_context;
+    
     int frame_size = ctx_header->frame_num_per_context * ctx_header->frame_length * SAMPLE_RATE / 1000;
     int channel_size = ctx_header->frame_num_per_channel * ctx_header->frame_length * SAMPLE_RATE / 1000;
     int offset = vsp_context.ctx_index* frame_size;
+    int current_ctx_index = vsp_context.ctx_index % (ctx_header->frame_num_per_channel / ctx_header->frame_num_per_context);
 
     for (int i=0; i<mic_num; i++) {
         if (offset + frame_size > mic_data[i].sample_size) {
             return NULL;
         }
         short *src = mic_data[i].sample + offset;
-        short *dest = ctx_header->mic_buffer + i * channel_size;
+        short *dest = ctx_header->mic_buffer + current_ctx_index * frame_size + i * channel_size;
         memcpy (dest, src, frame_size * sizeof(short));
     }
 
@@ -212,12 +219,10 @@ VSP_CONTEXT* VspGetContext(WAVE_DATA mic_data[], int mic_num, WAVE_DATA ref_data
             return NULL;
         }
         short *src = ref_data[i].sample + offset;
-        short *dest = ctx_header->ref_buffer + i * channel_size;
+        short *dest = ctx_header->ref_buffer+ current_ctx_index * frame_size + i * channel_size;
         memcpy (dest, src, frame_size * sizeof(short));
     }
 
-    vsp_context.ctx_index++;
-    vsp_context.frame_index += ctx_header->frame_num_per_context;
     return &vsp_context;
 }
 

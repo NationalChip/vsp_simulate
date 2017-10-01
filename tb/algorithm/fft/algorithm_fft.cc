@@ -20,7 +20,8 @@ int FFT(int *sample, int *real, int *image, int frame_size, int fft_size)
     int bexp = 0;
     int shift_num = 0;
     int *x = (int *)malloc(sizeof(int) * fft_size);
-    int *fft_cpl_out = (int *)malloc(sizeof(int) * (fft_size + 2));
+//    int *fft_cpl_out = (int *)malloc(sizeof(int) * (fft_size + 2));
+    int *fft_cpl_out = new int[sizeof(int) * (fft_size + 2)];//(int *)malloc(sizeof(int) * (fft_size + 2));
 
     if (x == NULL || fft_cpl_out == NULL) {
         return -1;

@@ -32,7 +32,7 @@ XTENSA_SYSTEM   = $(XTENSA)/XtDevTools/install/builds/RF-2016.4-linux/$(XTENSA_C
 LSP_FLAGS       = -mlsp=./output/lsp-sim
 
 CORE_FLAGS      = --xtensa-system=$(XTENSA_SYSTEM) --xtensa-core=$(XTENSA_CORE)
-LDFLAGS         = $(CORE_FLAGS) $(LSP_FLAGS) -lreftb -Wl,-gc-sections -mlongcalls
+LDFLAGS         = $(CORE_FLAGS) $(LSP_FLAGS) -lstdc++ -Wl,-gc-sections -mlongcalls
 CFLAGS          = $(CORE_FLAGS) -std=gnu99 -Wall -ffunction-sections -mlongcalls -g -O2
 CPPFLAGS        = $(CORE_FLAGS) -std=gnu++98 -Wall -ffunction-sections -mlongcalls -g -O2
 

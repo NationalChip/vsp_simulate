@@ -63,7 +63,7 @@ int _FFT(int *sample, float *fft_out, int frame_size, int fft_size)
         else {
             qn = QN;
         }
-        fft_out[i] = (float)(cpl_model >> (9 + qn + cpl_model_qn - QN)) / (1 << (QN - qn));
+        fft_out[i] = (float)(cpl_model >> (9 + cpl_model_qn - (QN - qn))) / (1 << (QN - qn));
 #ifdef OPEN_DEBUG_PRINTF
         if(i%10 == 0)printf("\n");
         printf("%5.5f ", fft_out[i]);

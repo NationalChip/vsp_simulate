@@ -14,7 +14,8 @@
 
 #include "vsp_process.h"
 
-#define MIC_NUM  7
+//#define CALC_PROFILE
+#define MIC_NUM  4
 #define REF_NUM  2
 
 static char path_buffer[256];
@@ -79,7 +80,9 @@ int main(int argc, char *argv[])
     VspContextInit();
     VSP_CONTEXT *context;
     int sample_size = 0;
+    int cnt = 0;
     while ((context = VspGetContext(mic_data, MIC_NUM, ref_data, REF_NUM)) != NULL) {
+        printf ("VSP process start :%d\n", ++cnt);
         // do aec denoise beamforming doa logfbank
         VspProcessActive(context);
 

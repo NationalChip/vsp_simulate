@@ -9,3 +9,7 @@
 ## 生成 profile ##
 1. make profile
 
+## 相关参数配置 ##
+1. 配置 mic 数跟 ref 数：修改 vsp_main.c 中的宏 MIC_NUM(默认为4) 和 REF_NUM(默认为2)
+2. 配置 ctx 和 channel 数：修改 vsp_context.c 中的宏 FRAME_NUM_PER_CONTEXT(默认为3) 和 CONTEXT_NUM_PER_CHANNEL(默认为5)
+3. 配置帧长：修改 vsp_context.c 中的宏 FRAME_LENGTH(默认为10)， 单位是 ms
