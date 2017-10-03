@@ -88,6 +88,9 @@ int main(int argc, char *argv[])
 
         // save out_data
         VspWriteWaveData(fp_out_wav, &sample_size);
+#ifdef CALC_PROFILE
+        if (cnt >= 4) break;
+#endif
     }
     VspWriteWaveHeader(fp_out_wav, sample_size);
 
